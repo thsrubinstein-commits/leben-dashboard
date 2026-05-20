@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Leben">
+<meta name="theme-color" content="#050A12">
+<title>Leben Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#050A12;color:#F1F5F9;font-family:'SF Mono','Fira Code','Courier New',monospace;min-height:100vh;padding-bottom:32px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 16px 12px;border-bottom:1px solid rgba(148,163,184,.08)}
+.header-sub{font-size:10px;color:#1E293B;letter-spacing:.1em;margin-bottom:3px}
+.header-title{font-size:20px;font-weight:500}
+.header-title span{color:#22D3EE}
+.badge{font-size:10px;padding:2px 7px;border-radius:2px}
+.badge-live{background:rgba(16,185,129,.12);color:#34D399}
+.badge-loading{background:rgba(245,158,11,.12);color:#FCD34D}
+.sync-time{font-size:10px;color:#1E293B;margin-top:4px;text-align:right}
+.tabs{display:flex;overflow-x:auto;border-bottom:1px solid rgba(148,163,184,.08);padding:0 16px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:11px;letter-spacing:.08em;padding:10px 12px;background:transparent;border:none;border-bottom:2px solid transparent;color:#334155;cursor:pointer;white-space:nowrap;margin-bottom:-1px;font-family:inherit}
+.tab.on{color:#22D3EE;border-bottom-color:#22D3EE}
+.content{padding:14px}
+.panel{display:none}.panel.on{display:block}
+.card{background:#0D1117;border-radius:5px;border:1px solid rgba(148,163,184,.08);padding:12px 14px;margin-bottom:8px}
+.ca{border-left:2px solid #22D3EE;border-radius:0}.cp{border-left:2px solid #8B5CF6;border-radius:0}.cr{border-left:2px solid #EF4444;border-radius:0}.cg{border-left:2px solid #10B981;border-radius:0}.cw{border-left:2px solid #F59E0B;border-radius:0}
+.ai-card{background:rgba(34,211,238,.03);border:1px solid rgba(34,211,238,.15);border-radius:5px;padding:14px 16px;margin-bottom:8px}
+.banner{background:rgba(34,211,238,.03);border:1px solid rgba(34,211,238,.15);border-radius:5px;padding:12px 14px;margin-bottom:8px}
+.ai-hdr{display:flex;align-items:center;gap:7px;font-size:10px;color:#22D3EE;letter-spacing:.12em;margin-bottom:9px}
+.dot{width:6px;height:6px;background:#22D3EE;border-radius:50%;animation:pl 2s infinite;flex-shrink:0}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+.ai-txt{font-size:13px;line-height:1.65;color:#475569;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.ml{font-size:10px;color:#334155;letter-spacing:.1em;margin-bottom:4px}
+.mv{font-size:20px;font-weight:500;line-height:1.2}
+.msub{font-size:11px;color:#334155;margin-top:4px}
+.mup{color:#10B981}.mcy{color:#22D3EE}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.g4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
+@media(min-width:520px){.g4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.le{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(148,163,184,.07);font-size:12px}
+.le:last-child{border-bottom:none}
+.lt{color:#334155;flex-shrink:0;min-width:44px}.lm{flex:1;color:#CBD5E1}.lv{color:#475569;flex-shrink:0}
+.bdg{font-size:10px;padding:2px 7px;border-radius:2px;flex-shrink:0}
+.bg{background:rgba(16,185,129,.12);color:#34D399}.bb{background:rgba(139,92,246,.12);color:#C4B5FD}.ba{background:rgba(245,158,11,.12);color:#FCD34D}.br{background:rgba(239,68,68,.12);color:#FCA5A5}
+.pbar{height:5px;background:rgba(148,163,184,.07);border-radius:2px;overflow:hidden;margin-top:5px}
+.pf{height:100%;border-radius:2px;transition:width .4s}
+.seg{height:20px;flex:1;min-width:10px;max-width:40px;border-radius:2px;border:1px solid rgba(148,163,184,.1);transition:background .25s}
+.seg.f{background:#22D3EE;border-color:#22D3EE}
+.seg.h{background:rgba(34,211,238,.28);border-color:rgba(34,211,238,.4)}
+.hr-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.07)}
+.hr-row:last-child{border-bottom:none}
+.hr-lbl{flex:1;font-size:13px;color:#CBD5E1;font-family:-apple-system,sans-serif}
+.hr-sk{font-size:10px;color:#334155;flex-shrink:0;text-align:right}
+input,select{background:#0D1117;color:#F1F5F9;border:1px solid rgba(148,163,184,.12);border-radius:4px;font-family:inherit;font-size:13px;padding:9px 11px;width:100%;outline:none}
+input::placeholder{color:#334155}
+input:focus,select:focus{border-color:rgba(34,211,238,.4)}
+select option{background:#0D1117}
+button{font-family:inherit;cursor:pointer;border-radius:4px;font-size:12px;letter-spacing:.06em;border:1px solid rgba(148,163,184,.1);background:rgba(148,163,184,.04);color:#64748B;padding:9px 0}
+.btn-c{border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.06);color:#22D3EE}
+.stgl{display:flex;gap:6px;margin-bottom:12px}
+.stb{padding:7px 14px;flex:1;border:1px solid rgba(148,163,184,.1);background:transparent;color:#334155;font-size:11px;letter-spacing:.07em}
+.stb.on{border-color:rgba(34,211,238,.4);color:#22D3EE;background:rgba(34,211,238,.06)}
+.rtbl{width:100%;border-collapse:collapse;font-size:12px}
+.rtbl th{color:#334155;font-weight:400;padding:0 0 8px;text-align:left;font-size:10px;letter-spacing:.07em;border-bottom:1px solid rgba(148,163,184,.08)}
+.rtbl td{padding:8px 0;border-bottom:1px solid rgba(148,163,184,.07);color:#CBD5E1}
+.rtbl tr:last-child td{border-bottom:none}
+.empty{text-align:center;padding:24px 16px;color:#334155;font-size:13px;line-height:1.6;font-family:-apple-system,sans-serif}
+.empty strong{color:#475569;display:block;margin-bottom:6px;font-size:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.mt-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.mt-btn{padding:7px 12px;flex:1;min-width:70px;font-size:11px;letter-spacing:.06em;border:1px solid rgba(148,163,184,.1);background:transparent;color:#334155}
+.mt-btn.on{border-color:rgba(34,211,238,.4);color:#22D3EE;background:rgba(34,211,238,.06)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-sub" id="today-str">loading...</div>
+    <div class="header-title">Leben <span>Dashboard</span></div>
+  </div>
+  <div style="text-align:right">
+    <span class="badge badge-loading" id="sync-badge">● syncing</span>
+    <div class="sync-time" id="sync-time"></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="sTab('ov',this)">overview</button>
+  <button class="tab" onclick="sTab('nu',this)">nutrition</button>
+  <button class="tab" onclick="sTab('hy',this)">hydration</button>
+  <button class="tab" onclick="sTab('wt',this)">weight</button>
+  <button class="tab" onclick="sTab('st',this)">steps</button>
+  <button class="tab" onclick="sTab('sl',this)">sleep</button>
+  <button class="tab" onclick="sTab('hr',this)">heart</button>
+  <button class="tab" onclick="sTab('su',this)">sun</button>
+  <button class="tab" onclick="sTab('hb',this)">habits</button>
+  <button class="tab" onclick="sTab('wo',this)">workout</button>
+</div>
+
+<div class="content">
+
+<!-- OVERVIEW -->
+<div id="p-ov" class="panel on">
+  <div class="g4">
+    <div class="card ca"><div class="ml">steps</div><div class="mv mcy" id="ov-steps">--</div><div class="msub" id="ov-steps-sub">sync needed</div></div>
+    <div class="card cr"><div class="ml">resting hr</div><div class="mv" id="ov-hr">--</div><div class="msub">bpm</div></div>
+    <div class="card cp"><div class="ml">hrv</div><div class="mv" id="ov-hrv">--</div><div class="msub">ms</div></div>
+    <div class="card cp"><div class="ml">sleep score</div><div class="mv" id="ov-sleep">--</div><div class="msub" id="ov-sleep-sub">score</div></div>
+  </div>
+  <div class="g4">
+    <div class="card cw"><div class="ml">weight</div><div class="mv" id="ov-wt">--</div><div class="msub">lbs</div></div>
+    <div class="card ca"><div class="ml">hydration</div><div class="mv mcy" id="ov-water">0 oz</div><div class="msub">/ 96 oz goal</div></div>
+    <div class="card cg"><div class="ml">sun today</div><div class="mv" id="ov-sun">--</div><div class="msub">min</div></div>
+    <div class="card ca"><div class="ml">calories</div><div class="mv" id="ov-cal">0</div><div class="msub">of 2,200 kcal</div></div>
+  </div>
+  <div style="background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.2);border-radius:5px;padding:14px 16px;margin-bottom:8px">
+    <div class="ai-hdr"><div class="dot"></div>sleep target · peak muscle gain</div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <div><div class="ml">in bed by</div><div style="font-size:22px;font-weight:500;color:#22D3EE;margin-top:2px">10:00 <span style="font-size:12px;color:#334155">PM</span></div></div>
+      <div><div class="ml">asleep</div><div style="font-size:22px;font-weight:500;color:#22D3EE;margin-top:2px">10:15 <span style="font-size:12px;color:#334155">PM</span></div></div>
+      <div><div class="ml">wake up</div><div style="font-size:22px;font-weight:500;color:#22D3EE;margin-top:2px">6:15 <span style="font-size:12px;color:#334155">AM</span></div></div>
+      <div><div class="ml">window</div><div style="font-size:22px;font-weight:500;color:#F1F5F9;margin-top:2px">8h 0m</div></div>
+    </div>
+  </div>
+  <div class="banner" id="setup-banner">
+    <div class="ai-hdr"><div class="dot"></div>step 3 pending · apple health not connected yet</div>
+    <div class="ai-txt">Your database and web app are live. Apple Health data (steps, HR, HRV, sleep, weight) will sync automatically once your iPhone Shortcut is set up in Step 3. Your food log and water tracker are fully live right now — start using them today.</div>
+  </div>
+</div>
+
+<!-- NUTRITION -->
+<div id="p-nu" class="panel">
+  <div class="g3">
+    <div class="card ca"><div class="ml">calories today</div><div class="mv" id="nu-cal">0</div><div class="msub">/ 2,200 goal</div><div class="pbar"><div class="pf" id="nu-cal-bar" style="background:#22D3EE;width:0%"></div></div></div>
+    <div class="card ca"><div class="ml">protein</div><div class="mv" id="nu-prot">0g</div><div class="msub">/ 160g goal</div><div class="pbar"><div class="pf" id="nu-prot-bar" style="background:#8B5CF6;width:0%"></div></div></div>
+    <div class="card"><div class="ml">remaining</div><div class="mv" id="nu-rem">2,200</div><div class="msub">kcal left</div></div>
+  </div>
+  <div class="card">
+    <div class="ml" style="margin-bottom:10px">log a meal</div>
+    <div class="mt-row">
+      <button class="mt-btn on" id="mt-breakfast" onclick="setMT('breakfast',this)">breakfast</button>
+      <button class="mt-btn" id="mt-lunch" onclick="setMT('lunch',this)">lunch</button>
+      <button class="mt-btn" id="mt-dinner" onclick="setMT('dinner',this)">dinner</button>
+      <button class="mt-btn" id="mt-snack" onclick="setMT('snack',this)">snack</button>
+    </div>
+    <input id="food-name" placeholder="Meal name (e.g. Grilled chicken salad)" style="margin-bottom:8px">
+    <div class="form-grid">
+      <input id="food-cal" type="number" placeholder="Calories">
+      <input id="food-prot" type="number" placeholder="Protein (g)">
+      <input id="food-carb" type="number" placeholder="Carbs (g)">
+      <input id="food-fat" type="number" placeholder="Fat (g)">
+    </div>
+    <button class="btn-c" style="width:100%;padding:10px 0" onclick="logFood()">+ log meal</button>
+  </div>
+  <div class="card">
+    <div class="ml" style="margin-bottom:10px">today's log</div>
+    <div id="food-log-list"><div class="empty"><strong>No meals logged yet</strong>Log your first meal above</div></div>
+  </div>
+</div>
+
+<!-- HYDRATION -->
+<div id="p-hy" class="panel">
+  <div class="g3">
+    <div class="card ca"><div class="ml">consumed today</div><div class="mv mcy" id="hy-oz">0 oz</div><div class="msub" id="hy-pct">0% of goal</div></div>
+    <div class="card"><div class="ml">remaining</div><div class="mv" id="hy-rem">96 oz</div><div class="msub">to daily goal</div></div>
+    <div class="card ca"><div class="ml">today's goal</div><div class="mv mcy">96 oz</div><div class="msub">creatine · maintenance</div></div>
+  </div>
+  <div class="card">
+    <div class="ml" style="margin-bottom:8px">fluid intake · 8 oz segments (goal: 96 oz = 12 segments)</div>
+    <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px" id="hy-segs"></div>
+    <div id="hy-seg-label" style="font-size:10px;color:#334155;margin-bottom:14px">0 of 12 segments consumed</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="btn-c" style="flex:1;padding:10px 0" onclick="logWater(8)">+8 oz</button>
+      <button class="btn-c" style="flex:1;padding:10px 0" onclick="logWater(16)">+16 oz</button>
+      <button class="btn-c" style="flex:1;padding:10px 0" onclick="logWater(24)">+24 oz</button>
+      <button class="btn-c" style="flex:1;padding:10px 0" onclick="logWater(32)">+32 oz</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input id="hy-custom" type="number" placeholder="Custom oz..." style="flex:1">
+      <button class="btn-c" style="flex:0 0 auto;padding:0 16px" onclick="logCustomWater()">log</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ml" style="margin-bottom:10px">intake log · today</div>
+    <div id="hy-log-list"><div class="empty"><strong>No water logged yet</strong>Tap +8 oz above to start</div></div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-hdr"><div class="dot"></div>ai · creatine hydration</div>
+    <div class="ai-txt">Creatine (5g/day maintenance) pulls water into muscle cells — an extra 16 oz never reaches circulation. Your 96 oz goal accounts for this. Take your creatine with 8 oz of water, then drink another 8 oz 30 minutes later for optimal absorption.</div>
+  </div>
+</div>
+
+<!-- WEIGHT -->
+<div id="p-wt" class="panel">
+  <div class="g3">
+    <div class="card cw"><div class="ml">current weight</div><div class="mv" id="wt-val">--</div><div class="msub">lbs</div></div>
+    <div class="card"><div class="ml">bmi</div><div class="mv" id="wt-bmi">--</div><div class="msub">healthy range</div></div>
+    <div class="card"><div class="ml">goal weight</div><div class="mv">175</div><div class="msub">lbs · ~10 wks</div></div>
+  </div>
+  <div class="card">
+    <div class="ml" style="margin-bottom:10px">log weight</div>
+    <div style="display:flex;gap:8px">
+      <input id="wt-input" type="number" placeholder="Weight in lbs (e.g. 178.4)" step="0.1" style="flex:1">
+      <button class="btn-c" style="flex:0 0 auto;padding:0 16px" onclick="logWeight()">log</button>
+    </div>
+  </div>
+  <div class="banner">
+    <div class="ai-hdr"><div class="dot"></div>apple health sync · step 3</div>
+    <div class="ai-txt">Weight will sync automatically from Apple Health once your Shortcut is set up. Log it manually above in the meantime. Goal: lose 1–1.2 lbs/month to preserve muscle mass while cutting fat.</div>
+  </div>
+</div>
+
+<!-- STEPS -->
+<div id="p-st" class="panel">
+  <div class="g3">
+    <div class="card ca"><div class="ml">steps today</div><div class="mv mcy" id="st-val">--</div><div class="msub">goal: 10,000</div></div>
+    <div class="card"><div class="ml">distance</div><div class="mv" id="st-dist">--</div><div class="msub">miles today</div></div>
+    <div class="card"><div class="ml">active cals</div><div class="mv" id="st-cal">--</div><div class="msub">goal: 500</div></div>
+  </div>
+  <div class="banner">
+    <div class="ai-hdr"><div class="dot"></div>apple health sync · step 3</div>
+    <div class="ai-txt">Steps, distance, and active calories sync automatically from Apple Health every hour once your Shortcut is running. On days your step count is below 8,000 by 8pm, a 15-minute walk closes the gap entirely.</div>
+  </div>
+</div>
+
+<!-- SLEEP -->
+<div id="p-sl" class="panel">
+  <div style="background:rgba(34,211,238,.04);border:1px solid rgba(34,211,238,.2);border-radius:5px;padding:16px;margin-bottom:8px">
+    <div class="ai-hdr"><div class="dot"></div>ai · recommended schedule for peak muscle gain</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;text-align:center;margin-bottom:14px">
+      <div style="border-right:1px solid rgba(148,163,184,.08)"><div class="ml">in bed by</div><div style="font-size:22px;font-weight:500;color:#22D3EE;margin-top:3px">10:00<span style="font-size:11px;color:#334155"> PM</span></div><div style="font-size:10px;color:#1E293B;margin-top:4px">38 min earlier</div></div>
+      <div style="border-right:1px solid rgba(148,163,184,.08)"><div class="ml">asleep</div><div style="font-size:22px;font-weight:500;color:#22D3EE;margin-top:3px">10:15<span style="font-size:11px;color:#334155"> PM</span></div><div style="font-size:10px;color:#1E293B;margin-top:4px">15 min wind-down</div></div>
+      <div><div class="ml">wake</div><div style="font-size:22px;font-weight:500;color:#22D3EE;margin-top:3px">6:15<span style="font-size:11px;color:#334155"> AM</span></div><div style="font-size:10px;color:#1E293B;margin-top:4px">8h 0m window</div></div>
+    </div>
+    <div style="border-top:1px solid rgba(148,163,184,.08);padding-top:10px;font-size:12px;color:#334155;line-height:1.6;font-family:-apple-system,sans-serif">Going to bed 38 min earlier adds a partial 5th sleep cycle, raising deep sleep from ~82 → ~105 min. Growth hormone peaks in the first 2–3 hours of sleep — earlier bedtime maximizes GH release for muscle recovery and body recomposition.</div>
+  </div>
+  <div class="g4">
+    <div class="card cp"><div class="ml">sleep score</div><div class="mv" id="sl-score">--</div><div class="msub">/ 100</div></div>
+    <div class="card cp"><div class="ml">total sleep</div><div class="mv" id="sl-total">--</div><div class="msub">hours</div></div>
+    <div class="card cp"><div class="ml">deep sleep</div><div class="mv" id="sl-deep">--</div><div class="msub">min</div></div>
+    <div class="card cp"><div class="ml">rem sleep</div><div class="mv" id="sl-rem">--</div><div class="msub">min</div></div>
+  </div>
+  <div class="banner">
+    <div class="ai-hdr"><div class="dot"></div>apple health sync · step 3</div>
+    <div class="ai-txt">Sleep score, duration, and stage breakdown sync automatically from Apple Health. Until then, the most impactful thing you can do: set a 9:30pm "screens off" alarm on your phone tonight.</div>
+  </div>
+</div>
+
+<!-- HEART -->
+<div id="p-hr" class="panel">
+  <div class="g4">
+    <div class="card cr"><div class="ml">resting hr</div><div class="mv" id="hr-rhr">--</div><div class="msub">bpm</div></div>
+    <div class="card cp"><div class="ml">hrv</div><div class="mv" id="hr-hrv">--</div><div class="msub">ms</div></div>
+    <div class="card cp"><div class="ml">vo2 max</div><div class="mv" id="hr-vo2">--</div><div class="msub">est.</div></div>
+    <div class="card"><div class="ml">hrv vs baseline</div><div class="mv" id="hr-base">--</div><div class="msub">vs 46ms avg</div></div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-hdr"><div class="dot"></div>ai · daily training decision</div>
+    <div class="ai-txt">Once HRV syncs, this panel will tell you exactly how hard to train today. Rule: HRV below 40ms = recovery only (walk, stretch). HRV 40–50ms = moderate training. HRV above 50ms = push hard. Green light right now means intervals or a tempo run.</div>
+  </div>
+  <div class="banner">
+    <div class="ai-hdr"><div class="dot"></div>apple health sync · step 3</div>
+    <div class="ai-txt">Resting HR, HRV, and VO2 Max sync automatically from Apple Health every hour once your Shortcut is running.</div>
+  </div>
+</div>
+
+<!-- SUN -->
+<div id="p-su" class="panel">
+  <div class="g3">
+    <div class="card cg"><div class="ml">time outside</div><div class="mv" id="su-min">--</div><div class="msub">min · goal: 30</div></div>
+    <div class="card cg"><div class="ml">uv index</div><div class="mv">~4</div><div class="msub">moderate · safe</div></div>
+    <div class="card cg"><div class="ml">est. vitamin d</div><div class="mv" id="su-vit">--</div><div class="msub">IU today</div></div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-hdr"><div class="dot"></div>ai · optimal sun windows</div>
+    <div class="ai-txt">Best windows today: 9–11am and 3–5pm. UV high enough for vitamin D but not damaging. Morning sun before 10am anchors your circadian rhythm and directly improves tonight's deep sleep quality — it's the highest-leverage free thing you can do for sleep.</div>
+  </div>
+  <div class="card">
+    <div class="ml" style="margin-bottom:10px">log outdoor time</div>
+    <div style="display:flex;gap:8px">
+      <input id="su-input" type="number" placeholder="Minutes outside..." style="flex:1">
+      <button class="btn-c" style="flex:0 0 auto;padding:0 16px" onclick="logSun()">log</button>
+    </div>
+  </div>
+</div>
+
+<!-- HABITS -->
+<div id="p-hb" class="panel">
+  <div class="card">
+    <div class="ml" style="margin-bottom:12px">daily habits · today</div>
+    <div id="habit-list"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <input id="new-habit" placeholder="Add a new habit..." style="flex:1">
+    <button class="btn-c" style="flex:0 0 auto;padding:0 14px" onclick="addHabit()">+ add</button>
+  </div>
+  <div class="ai-card">
+    <div class="ai-hdr"><div class="dot"></div>ai · habit coaching</div>
+    <div class="ai-txt">Your no-screens habit is your highest-leverage gap — it directly limits your sleep score and melatonin. Set a 9:30pm alarm on your phone tonight labeled "screens off." Anchor it to your existing morning water habit: check habits right after drinking your morning 8 oz.</div>
+  </div>
+</div>
+
+<!-- WORKOUT -->
+<div id="p-wo" class="panel">
+  <div class="stgl">
+    <button class="stb on" onclick="wTab('run',this)">running</button>
+    <button class="stb" onclick="wTab('lift',this)">lifting</button>
+  </div>
+  <div id="wo-run">
+    <div class="g3">
+      <div class="card ca"><div class="ml">mile pr</div><div class="mv mcy">7:22</div><div class="msub">05/01/26</div></div>
+      <div class="card ca"><div class="ml">5k pr</div><div class="mv mcy">24:15</div><div class="msub">7:49/mi avg</div></div>
+      <div class="card ca"><div class="ml">10k pr</div><div class="mv mcy">51:30</div><div class="msub">8:18/mi avg</div></div>
+    </div>
+    <div class="card">
+      <div class="ml" style="margin-bottom:10px">log a run</div>
+      <div class="form-grid">
+        <input id="run-dist" type="number" placeholder="Distance (miles)" step="0.01">
+        <input id="run-time" placeholder="Time (e.g. 28:30)">
+        <input id="run-pace" placeholder="Avg pace (e.g. 8:42/mi)">
+        <select id="run-type"><option value="easy">Easy run</option><option value="long">Long run</option><option value="tempo">Tempo</option><option value="interval">Intervals</option><option value="race">Race / PR</option></select>
+      </div>
+      <button class="btn-c" style="width:100%;padding:10px 0" onclick="logRun()">+ log run</button>
+    </div>
+    <div class="card">
+      <div class="ml" style="margin-bottom:10px">run log</div>
+      <div id="run-log"><div class="empty"><strong>No runs logged yet</strong>Log your first run above</div></div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-hdr"><div class="dot"></div>ai · running coach</div>
+      <div class="ai-txt">Your mile PR of 7:22 predicts a 5K potential of ~23:10 — you have 65 seconds of improvement available. To break 24:00: one weekly tempo at 8:00/mi effort, one interval session (4×800m at 7:20–7:30/mi), and keep all other runs truly easy at 9:00+/mi. Cap weekly mileage increases at 10% per week to stay injury-free.</div>
+    </div>
+  </div>
+  <div id="wo-lift" style="display:none">
+    <div class="card">
+      <div class="ml" style="margin-bottom:10px">key lift tracker</div>
+      <div class="le"><span class="lt" style="min-width:110px">Bench press</span><span class="lm">155 lbs · 3×8</span><span class="bdg bb">↑ +5 lbs</span></div>
+      <div class="le"><span class="lt" style="min-width:110px">Squat</span><span class="lm">205 lbs · 3×5</span><span class="bdg bg">maintained</span></div>
+      <div class="le"><span class="lt" style="min-width:110px">Deadlift</span><span class="lm">245 lbs · 1×5</span><span class="bdg bb">↑ +10 lbs</span></div>
+      <div class="le"><span class="lt" style="min-width:110px">Overhead press</span><span class="lm">95 lbs · 3×8</span><span class="bdg bg">maintained</span></div>
+      <div class="le"><span class="lt" style="min-width:110px">Pull-ups</span><span class="lm">bodyweight · 3×10</span><span class="bdg bb">↑ +2 reps</span></div>
+    </div>
+    <div class="card">
+      <div class="ml" style="margin-bottom:10px">log a set</div>
+      <div class="form-grid">
+        <input id="lift-ex" placeholder="Exercise name">
+        <input id="lift-wt" type="number" placeholder="Weight (lbs)">
+        <input id="lift-sets" type="number" placeholder="Sets">
+        <input id="lift-reps" type="number" placeholder="Reps">
+      </div>
+      <button class="btn-c" style="width:100%;padding:10px 0" onclick="logLift()">+ log set</button>
+    </div>
+    <div class="card">
+      <div class="ml" style="margin-bottom:10px">today's session</div>
+      <div id="lift-log"><div class="empty"><strong>No lifts logged yet</strong>Log your first set above</div></div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-hdr"><div class="dot"></div>ai · lifting coach</div>
+      <div class="ai-txt">Good progressive overload — bench +5 lbs and deadlift +10 lbs this month. While running and lifting simultaneously, protein is your critical lever. Keep lifting to 3 sessions/week max to preserve running recovery capacity. Compound movements only: bench, squat, deadlift, pull-ups give the highest return per session.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+var SB='https://txczfpqujwkedsnmwajl.supabase.co';
+var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4Y3pmcHF1andrZWRzbm13YWpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDg2ODksImV4cCI6MjA5NDg4NDY4OX0.tdOHGeHTDb0bNYB3LQpDDUYh_i2RsG2OR0778r2xHk8';
+var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+var TODAY=new Date().toISOString().split('T')[0];
+var ST={metrics:null,food:[],water:[],habits:[
+  {name:'Morning walk or movement (10+ min)',done:false,streak:7},
+  {name:'Drink 8 oz water on waking',done:true,streak:12},
+  {name:'Take vitamins / supplements',done:false,streak:3},
+  {name:'30+ min outside / sun exposure',done:false,streak:0},
+  {name:'No screens 30 min before bed',done:false,streak:0},
+  {name:'Hit protein goal (160g)',done:false,streak:5},
+  {name:'Workout or run',done:false,streak:4}
+]};
+var mealType='breakfast';
+
+async function api(path,opts){
+  try{
+    var r=await fetch(SB+'/rest/v1/'+path,Object.assign({headers:H},opts));
+    if(!r.ok)return null;
+    if(r.status===204)return true;
+    return await r.json();
+  }catch(e){return null;}
+}
+
+async function loadData(){
+  setSyncBadge(false);
+  var d=new Date();
+  document.getElementById('today-str').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toLowerCase();
+  var[m,f,w]=await Promise.all([
+    api('daily_metrics?date=eq.'+TODAY+'&limit=1'),
+    api('food_log?date=eq.'+TODAY+'&order=logged_at.asc'),
+    api('water_log?date=eq.'+TODAY+'&order=logged_at.asc')
+  ]);
+  if(m)ST.metrics=m[0]||null;
+  if(f)ST.food=f;
+  if(w)ST.water=w;
+  render();
+  setSyncBadge(true);
+  document.getElementById('sync-time').textContent='synced '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+function setSyncBadge(ok){
+  var el=document.getElementById('sync-badge');
+  if(ok){el.className='badge badge-live';el.textContent='● live';}
+  else{el.className='badge badge-loading';el.textContent='● syncing';}
+}
+
+function v(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
+
+function render(){
+  var m=ST.metrics;
+  v('ov-steps',m&&m.steps?m.steps.toLocaleString():'--');
+  v('ov-steps-sub',m&&m.steps?Math.round(m.steps/10000*100)+'% of goal':'sync needed');
+  v('ov-hr',m&&m.resting_hr?m.resting_hr:'--');
+  v('ov-hrv',m&&m.hrv_ms?m.hrv_ms:'--');
+  v('ov-sleep',m&&m.sleep_score?m.sleep_score:'--');
+  v('ov-sleep-sub',m&&m.sleep_total_min?Math.floor(m.sleep_total_min/60)+'h '+(m.sleep_total_min%60)+'m':'score');
+  v('ov-wt',m&&m.weight_lbs?m.weight_lbs:'--');
+  v('ov-sun',m&&m.sun_minutes?m.sun_minutes:'--');
+  document.getElementById('setup-banner').style.display=m?'none':'block';
+  var tc=ST.food.reduce(function(a,f){return a+(f.calories||0);},0);
+  var tp=ST.food.reduce(function(a,f){return a+parseFloat(f.protein_g||0);},0);
+  v('ov-cal',tc);
+  v('nu-cal',tc);v('nu-prot',Math.round(tp)+'g');v('nu-rem',Math.max(0,2200-tc).toLocaleString());
+  document.getElementById('nu-cal-bar').style.width=Math.min(100,Math.round(tc/2200*100))+'%';
+  document.getElementById('nu-prot-bar').style.width=Math.min(100,Math.round(tp/160*100))+'%';
+  renderFoodLog();
+  renderWater();
+  if(m){
+    v('wt-val',m.weight_lbs||'--');
+    if(m.weight_lbs){v('wt-bmi',(m.weight_lbs/(69.5*69.5)*703).toFixed(1));}
+    v('st-val',m.steps?m.steps.toLocaleString():'--');
+    v('st-dist',m.distance_miles?m.distance_miles.toFixed(1)+'mi':'--');
+    v('st-cal',m.active_calories||'--');
+    v('sl-score',m.sleep_score||'--');
+    v('sl-total',m.sleep_total_min?(m.sleep_total_min/60).toFixed(1):'--');
+    v('sl-deep',m.deep_sleep_min||'--');
+    v('sl-rem',m.rem_sleep_min||'--');
+    v('hr-rhr',m.resting_hr||'--');
+    v('hr-hrv',m.hrv_ms||'--');
+    v('hr-vo2',m.vo2_max||'--');
+    if(m.hrv_ms){var d=m.hrv_ms-46;v('hr-base',(d>=0?'+':'')+d.toFixed(1)+' ms');}
+    v('su-min',m.sun_minutes||'--');
+    v('su-vit',m.sun_minutes?Math.round(m.sun_minutes*23.5)+' IU':'--');
+  }
+  renderHabits();
+}
+
+function renderFoodLog(){
+  var el=document.getElementById('food-log-list');
+  if(!ST.food.length){el.innerHTML='<div class="empty"><strong>No meals logged yet</strong>Log your first meal above</div>';return;}
+  el.innerHTML=ST.food.map(function(f){
+    var t=new Date(f.logged_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    return '<div class="le"><span class="lt">'+t+'</span><span class="lm">'+f.meal_name+'<br><span style="font-size:10px;color:#334155">'+f.meal_type+' · '+(f.protein_g||0)+'g protein</span></span><span class="lv">'+(f.calories||0)+' kcal</span></div>';
+  }).join('');
+}
+
+function renderWater(){
+  var oz=ST.water.reduce(function(a,w){return a+parseFloat(w.amount_oz||0);},0);
+  var goal=96,pct=Math.min(100,Math.round(oz/goal*100));
+  var numSegs=12,filled=Math.floor(oz/8),half=(oz%8)>=4;
+  v('ov-water',Math.round(oz)+' oz');
+  v('hy-oz',Math.round(oz)+' oz');
+  v('hy-pct',pct+'% of goal');
+  v('hy-rem',Math.max(0,goal-Math.round(oz))+' oz');
+  var sc=document.getElementById('hy-segs');sc.innerHTML='';
+  for(var i=0;i<numSegs;i++){var s=document.createElement('div');s.className='seg'+(i<filled?' f':(i===filled&&half?' h':''));sc.appendChild(s);}
+  v('hy-seg-label',Math.round(oz)+' oz consumed · '+(numSegs-filled)+' segments left');
+  var ll=document.getElementById('hy-log-list');
+  if(!ST.water.length){ll.innerHTML='<div class="empty"><strong>No water logged yet</strong>Tap +8 oz above to start</div>';return;}
+  ll.innerHTML=ST.water.map(function(w){
+    var t=new Date(w.logged_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    return '<div class="le"><span class="lt">'+t+'</span><span class="lm">'+w.amount_oz+' oz</span><span class="bdg bg">logged</span></div>';
+  }).join('');
+}
+
+function renderHabits(){
+  var el=document.getElementById('habit-list');
+  el.innerHTML=ST.habits.map(function(h,i){
+    return '<div class="hr-row"><input type="checkbox"'+(h.done?' checked':'')+' onchange="toggleHabit('+i+',this)" style="width:auto;flex-shrink:0"><label class="hr-lbl">'+h.name+'</label><span class="hr-sk">'+(h.streak>=3?'▲ ':'')+h.streak+'-day streak</span></div>';
+  }).join('');
+}
+
+var tabs=['ov','nu','hy','wt','st','sl','hr','su','hb','wo'];
+function sTab(id,btn){
+  tabs.forEach(function(t){var el=document.getElementById('p-'+t);if(el)el.classList.toggle('on',t===id);});
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b===btn);});
+}
+
+function wTab(w,btn){
+  document.getElementById('wo-run').style.display=w==='run'?'block':'none';
+  document.getElementById('wo-lift').style.display=w==='lift'?'block':'none';
+  document.querySelectorAll('.stb').forEach(function(b){b.classList.toggle('on',b===btn);});
+}
+
+function setMT(t,btn){
+  mealType=t;
+  document.querySelectorAll('.mt-btn').forEach(function(b){b.classList.toggle('on',b===btn);});
+}
+
+async function logFood(){
+  var nm=document.getElementById('food-name').value.trim();
+  if(!nm){alert('Please enter a meal name');return;}
+  var data={meal_type:mealType,meal_name:nm,calories:parseInt(document.getElementById('food-cal').value)||0,protein_g:parseFloat(document.getElementById('food-prot').value)||0,carbs_g:parseFloat(document.getElementById('food-carb').value)||0,fat_g:parseFloat(document.getElementById('food-fat').value)||0,source:'manual'};
+  var res=await api('food_log',{method:'POST',body:JSON.stringify(data)});
+  if(res&&res[0]){ST.food.push(res[0]);render();['food-name','food-cal','food-prot','food-carb','food-fat'].forEach(function(id){document.getElementById(id).value='';});}
+}
+
+async function logWater(oz){
+  var res=await api('water_log',{method:'POST',body:JSON.stringify({amount_oz:oz,creatine_phase:'maintenance'})});
+  if(res&&res[0]){ST.water.push(res[0]);renderWater();}
+}
+
+async function logCustomWater(){
+  var v=parseFloat(document.getElementById('hy-custom').value);
+  if(v>0){await logWater(v);document.getElementById('hy-custom').value='';}
+}
+
+async function logWeight(){
+  var wt=parseFloat(document.getElementById('wt-input').value);
+  if(!wt)return;
+  var h=Object.assign({},H,{'Prefer':'resolution=merge-duplicates,return=representation'});
+  var r=await fetch(SB+'/rest/v1/daily_metrics',{method:'POST',headers:h,body:JSON.stringify({date:TODAY,weight_lbs:wt})});
+  if(r.ok){v('wt-val',wt);v('wt-bmi',(wt/(69.5*69.5)*703).toFixed(1));document.getElementById('wt-input').value='';if(!ST.metrics)ST.metrics={};ST.metrics.weight_lbs=wt;}
+}
+
+async function logSun(){
+  var min=parseInt(document.getElementById('su-input').value);
+  if(!min)return;
+  var h=Object.assign({},H,{'Prefer':'resolution=merge-duplicates,return=representation'});
+  var r=await fetch(SB+'/rest/v1/daily_metrics',{method:'POST',headers:h,body:JSON.stringify({date:TODAY,sun_minutes:min})});
+  if(r.ok){v('su-min',min);v('su-vit',Math.round(min*23.5)+' IU');document.getElementById('su-input').value='';}
+}
+
+async function logRun(){
+  var dist=parseFloat(document.getElementById('run-dist').value);
+  if(!dist){alert('Enter a distance');return;}
+  var data={type:'run',distance_miles:dist,avg_pace:document.getElementById('run-pace').value,notes:document.getElementById('run-type').value+' · '+document.getElementById('run-time').value};
+  var res=await api('workouts',{method:'POST',body:JSON.stringify(data)});
+  if(res&&res[0]){
+    var ll=document.getElementById('run-log');
+    var t=new Date(res[0].created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    var row='<div class="le"><span class="lt">'+t+'</span><span class="lm">'+dist+' mi · '+(data.avg_pace||'--')+'</span><span class="bdg bg">'+res[0].notes.split(' · ')[0]+'</span></div>';
+    if(ll.querySelector('.empty'))ll.innerHTML='';
+    ll.innerHTML=row+ll.innerHTML;
+    ['run-dist','run-time','run-pace'].forEach(function(id){document.getElementById(id).value='';});
+  }
+}
+
+async function logLift(){
+  var ex=document.getElementById('lift-ex').value.trim();
+  if(!ex){alert('Enter an exercise');return;}
+  var wr=await api('workouts?workout_date=eq.'+TODAY+'&type=eq.lift&limit=1');
+  var wid=null;
+  if(!wr||!wr.length){var nw=await api('workouts',{method:'POST',body:JSON.stringify({type:'lift',workout_date:TODAY})});if(nw&&nw[0])wid=nw[0].id;}
+  else wid=wr[0].id;
+  if(!wid)return;
+  var sets=parseInt(document.getElementById('lift-sets').value)||1;
+  var reps=parseInt(document.getElementById('lift-reps').value)||0;
+  var wt=parseFloat(document.getElementById('lift-wt').value)||0;
+  var res=await api('lift_sets',{method:'POST',body:JSON.stringify({workout_id:wid,exercise:ex,sets:sets,reps:reps,weight_lbs:wt})});
+  if(res){
+    var ll=document.getElementById('lift-log');
+    var row='<div class="le"><span class="lt" style="min-width:120px">'+ex+'</span><span class="lm">'+wt+' lbs · '+sets+'×'+reps+'</span></div>';
+    if(ll.querySelector('.empty'))ll.innerHTML='';
+    ll.innerHTML=ll.innerHTML+row;
+    ['lift-ex','lift-wt','lift-sets','lift-reps'].forEach(function(id){document.getElementById(id).value='';});
+  }
+}
+
+function toggleHabit(i,cb){
+  ST.habits[i].done=cb.checked;
+  if(cb.checked)ST.habits[i].streak++;else ST.habits[i].streak=Math.max(0,ST.habits[i].streak-1);
+  renderHabits();
+}
+
+function addHabit(){
+  var v=document.getElementById('new-habit').value.trim();
+  if(!v)return;
+  ST.habits.push({name:v,done:false,streak:0});
+  document.getElementById('new-habit').value='';
+  renderHabits();
+}
+
+loadData();
+setInterval(loadData,60000);
+</script>
+</body>
+</html>
